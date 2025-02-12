@@ -3,9 +3,9 @@ import { npm } from './npm'
 
 export const detectProvider = (sourceId: string): 'npm' | 'github' | null => {
   switch (true) {
-    case sourceId.startsWith('npm:'):
+    case sourceId.startsWith('pkg:npm'):
       return 'npm'
-    case sourceId.startsWith('github:'):
+    case sourceId.startsWith('pkg:github'):
       return 'github'
     default:
       return null

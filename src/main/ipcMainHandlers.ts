@@ -3,6 +3,7 @@ import type { LocalInstalledPackage } from './../types'
 import { ensureDir, getLocallyInstalledPackages } from './files'
 import { downloadRegistry } from './registry'
 import { APP_DIR } from './constants'
+import { updatePackage } from './providers'
 
 // Make sure appDir exists
 ensureDir(APP_DIR)
@@ -17,10 +18,13 @@ export const ipcMainHandlersInit = (): void => {
     return null
   })
 
-  ipcMain.handle('updatePackage', (_, sourceId: string): LocalInstalledPackage | null => {
-    console.log('Updating package:', sourceId)
-    return null
-  })
+  ipcMain.handle(
+    'updatePackage',
+    async (_, sourceId: string): Promise<LocalInstalledPackage | null> => {
+      await updatePackage(sourceId)
+      return null
+    }
+  )
 
   ipcMain.handle('loadRegistry', (): LocalInstalledPackage[] => {
     return getLocallyInstalledPackages()
