@@ -1,0 +1,4 @@
+---
+provider: generic
+url: https://auto-updates.getzana.net
+updaterCacheDirName: zana-gui-updater

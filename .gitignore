@@ -1,0 +1,11 @@
+node_modules
+dist
+out
+.DS_Store
+*.log*
+.svelte-kit
+.vite
+*.http
+.env
+http-client.env.json
+http-client.private.env.json
