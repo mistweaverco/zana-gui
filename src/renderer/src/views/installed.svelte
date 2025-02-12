@@ -129,7 +129,9 @@
         <div class="media-content">
           <p class="title is-4 pb-3">
             {pkg.name}
-            <span class="tag {pkg.updateAvailable ? 'is-warning' : 'is-text'}">{pkg.localVersion}</span>
+            <span class="tag {pkg.updateAvailable ? 'is-warning' : 'is-text'}"
+              >{pkg.localVersion}</span
+            >
             {#if pkg.updateAvailable}
               <span class="tag is-primary" data-sourceId={pkg.source.id}
                 >Update available {pkg.version}</span

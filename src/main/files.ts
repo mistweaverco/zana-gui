@@ -1,51 +1,9 @@
-import { app } from 'electron'
 import fs from 'fs'
-import path from 'path'
-
-export const appDir = path.join(app.getPath('appData'), 'zana')
-export const neovimDir = path.join(app.getPath('appData'), 'nvim')
+import type { LocalInstalledPackage, LocalPackage, RegistryPackage } from './../types'
+import { PACKAGES_FILE, REGISTRY_FILE } from './constants'
 
 export const ensureDir = (dir: string): void => {
   fs.mkdirSync(dir, { recursive: true })
-}
-
-type RegistryPackageSourceAsset = {
-  target: string
-  file: string
-}
-
-type RegistryPackageSource = {
-  id: string
-  asset: RegistryPackageSourceAsset[]
-}
-
-type RegistryPackageBin = {
-  [key: string]: string
-}
-
-type RegistryPackage = {
-  name: string
-  source: RegistryPackageSource
-  homepage: string
-  licenses: string[]
-  languages: string[]
-  categories: string[]
-  bin: RegistryPackageBin
-  version: string
-}
-
-export type LocalPackage = {
-  sourceId: string
-  version: string
-}
-
-export type LocalInstallFile = {
-  packages: LocalPackage[]
-}
-
-export type LocalInstalledPackage = RegistryPackage & {
-  localVersion: string
-  updateAvailable: boolean
 }
 
 const isUpdateAvailable = (localVersion: string, registryVersion: string): boolean => {
@@ -62,18 +20,15 @@ const isUpdateAvailable = (localVersion: string, registryVersion: string): boole
 }
 
 export const getLocallyInstalledPackages = (): LocalInstalledPackage[] => {
-  const registry = path.join(appDir, 'registry.json')
-  const packages = path.join(neovimDir, 'zana.json')
-
-  if (!fs.existsSync(registry)) {
+  if (!fs.existsSync(REGISTRY_FILE)) {
     return []
   }
-  if (!fs.existsSync(packages)) {
+  if (!fs.existsSync(PACKAGES_FILE)) {
     return []
   }
 
-  const registryData = JSON.parse(fs.readFileSync(registry, 'utf-8'))
-  const localPackages = JSON.parse(fs.readFileSync(packages, 'utf-8'))
+  const registryData = JSON.parse(fs.readFileSync(REGISTRY_FILE, 'utf-8'))
+  const localPackages = JSON.parse(fs.readFileSync(PACKAGES_FILE, 'utf-8'))
 
   return localPackages.packages
     .filter((localPackage: LocalPackage) =>
