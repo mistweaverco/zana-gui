@@ -29,6 +29,10 @@ Currently, Zana is in pre-alpha and under active development.
 
 <p></p>
 
+![demo](https://github.com/user-attachments/assets/a7660af3-c373-4d91-b68b-6c0a75ff01d8)
+
+<p></p>
+
 </div>
 
 ## Install
