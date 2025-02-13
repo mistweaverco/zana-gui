@@ -20,6 +20,7 @@ export type RegistryPackageBin = {
 export type RegistryPackage = {
   name: string
   source: RegistryPackageSource
+  description: string
   homepage: string
   licenses: string[]
   languages: string[]

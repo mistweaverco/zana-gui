@@ -3,6 +3,9 @@ import { contextBridge } from 'electron'
 import { LocalInstalledPackage } from '../types'
 
 const zana = {
+  quitApp: async (): Promise<void> => {
+    return await ipcRenderer.invoke('quitApp')
+  },
   getAppVersion: async (): Promise<string> => {
     return await ipcRenderer.invoke('getAppVersion')
   },
@@ -12,7 +15,7 @@ const zana = {
   loadRegistry: async (): Promise<string> => {
     return await ipcRenderer.invoke('loadRegistry')
   },
-  updatePackage: async (sourceId: string): Promise<LocalInstalledPackage | null> => {
+  updatePackage: async (sourceId: string): Promise<boolean> => {
     return await ipcRenderer.invoke('updatePackage', sourceId)
   },
   updateAllPackages: async (): Promise<LocalInstalledPackage[] | null> => {

@@ -19,6 +19,57 @@ const isUpdateAvailable = (localVersion: string, registryVersion: string): boole
   return false
 }
 
+export const setLocalPackageVersionToRegistryVersion = (sourceId: string): void => {
+  const registryData = getRegistryData()
+  const localPackages = getLocalPackages()
+
+  const localPackage = localPackages.find(
+    (localPackage: LocalPackage) => localPackage.sourceId === sourceId
+  )
+  const registryPackage = registryData.find(
+    (registryPackage: RegistryPackage) => registryPackage.source.id === sourceId
+  )
+
+  if (!localPackage || !registryPackage) {
+    return
+  }
+
+  localPackage.version = registryPackage.version
+
+  const updatedLocalPackages = localPackages.map((localPackage: LocalPackage) => {
+    if (localPackage.sourceId === sourceId) {
+      return localPackage
+    }
+    return localPackage
+  })
+
+  fs.writeFileSync(PACKAGES_FILE, JSON.stringify({ packages: updatedLocalPackages }, null, 2))
+}
+
+const getRegistryData = (): RegistryPackage[] => {
+  if (!fs.existsSync(REGISTRY_FILE)) {
+    return []
+  }
+  return JSON.parse(fs.readFileSync(REGISTRY_FILE, 'utf-8')) as RegistryPackage[]
+}
+
+export const getPackageBySourceId = (sourceId: string): RegistryPackage | null => {
+  const registryData = getRegistryData()
+  for (const regPkg of registryData) {
+    if (regPkg.source.id === sourceId) {
+      return regPkg
+    }
+  }
+  return null
+}
+
+export const getLocalPackages = (): LocalPackage[] => {
+  if (!fs.existsSync(PACKAGES_FILE)) {
+    return []
+  }
+  return JSON.parse(fs.readFileSync(PACKAGES_FILE, 'utf-8')).packages
+}
+
 export const getLocallyInstalledPackages = (): LocalInstalledPackage[] => {
   if (!fs.existsSync(REGISTRY_FILE)) {
     return []

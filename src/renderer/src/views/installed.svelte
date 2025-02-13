@@ -1,9 +1,11 @@
 <script lang="ts">
   import { onMount } from 'svelte'
+  import { useLocalPackages } from './../stores'
   let isLoading = true
-  let showInfoModal = false
+  let isInfoModalVisible = false
+  let infoModalButton: HTMLButtonElement
 
-  let localPackages = []
+  let localPackages = useLocalPackages()
   let localPackageItems = []
   let activePackageIndex = 0
 
@@ -11,7 +13,15 @@
   let loadingText = 'Downloading registry ...'
 
   const closeInfoModal = (): void => {
-    showInfoModal = false
+    isInfoModalVisible = false
+  }
+
+  const showInfoModal = (content: string): void => {
+    infoModalContent = content
+    isInfoModalVisible = true
+    setTimeout(() => {
+      infoModalButton.focus()
+    }, 200)
   }
 
   const onLocalPackageItemClick = (evt: MouseEvent): void => {
@@ -48,7 +58,9 @@
     loadingText = 'Updating all packages ...'
     const updatedPackages = await window.zana.updateAllPackages()
     if (updatedPackages) {
-      localPackages = updatedPackages
+      $localPackages = await window.zana.loadRegistry()
+    } else {
+      showInfoModal('Failed to update packages')
     }
     isLoading = false
   }
@@ -56,22 +68,28 @@
   const updateSelectedPackage = async (): Promise<void> => {
     isLoading = true
     loadingText = 'Updating package ...'
-    const pkg = localPackages[activePackageIndex]
-    const source = pkg.source
-    const updatedPkg = await window.zana.updatePackage(source.id)
+    const pkg = $localPackages[activePackageIndex]
+    const updatedPkg = await window.zana.updatePackage(pkg.source.id)
+    console.log(updatedPkg)
     if (updatedPkg) {
-      localPackages[activePackageIndex] = updatedPkg
+      $localPackages[activePackageIndex].localVersion = $localPackages[activePackageIndex].version
+      $localPackages[activePackageIndex].updateAvailable = false
+    } else {
+      showInfoModal('Failed to update package')
     }
     isLoading = false
   }
 
   onMount(async () => {
     await window.zana.downloadRegistry()
-    localPackages = await window.zana.loadRegistry()
+    $localPackages = await window.zana.loadRegistry()
     loadingText = 'Checking for updates ...'
     isLoading = false
     window.onkeydown = (evt: KeyboardEvent): void => {
       switch (evt.key) {
+        case 'q':
+          window.zana.quitApp()
+          break
         case 'U':
           updateAllPackages()
           break
@@ -99,7 +117,7 @@
   </div>
 </div>
 
-<div class="modal {showInfoModal ? 'is-active' : ''}">
+<div class="modal {isInfoModalVisible ? 'is-active' : ''}">
   <div class="modal-background"></div>
   <div class="modal-card">
     <section class="modal-card-body">
@@ -110,13 +128,15 @@
     </section>
     <footer class="modal-card-foot">
       <div class="buttons">
-        <button class="button is-success" on:click={closeInfoModal}>OK</button>
+        <button bind:this={infoModalButton} class="button is-success" on:click={closeInfoModal}
+          >OK</button
+        >
       </div>
     </footer>
   </div>
 </div>
 
-{#each localPackages as pkg, i}
+{#each $localPackages as pkg, i}
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <div

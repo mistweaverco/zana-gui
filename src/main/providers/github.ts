@@ -1,6 +1,6 @@
 const install = async (sourceId: string): Promise<boolean> => {
   console.log(`Installing package with sourceId: ${sourceId}`)
-  return true
+  return false
 }
 
 export const github = {

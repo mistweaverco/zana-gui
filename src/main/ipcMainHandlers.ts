@@ -9,6 +9,10 @@ import { updatePackage } from './providers'
 ensureDir(APP_DIR)
 
 export const ipcMainHandlersInit = (): void => {
+  ipcMain.handle('quitApp', (): void => {
+    app.quit()
+  })
+
   ipcMain.handle('getAppVersion', (): string => {
     return app.getVersion()
   })
@@ -18,13 +22,9 @@ export const ipcMainHandlersInit = (): void => {
     return null
   })
 
-  ipcMain.handle(
-    'updatePackage',
-    async (_, sourceId: string): Promise<LocalInstalledPackage | null> => {
-      await updatePackage(sourceId)
-      return null
-    }
-  )
+  ipcMain.handle('updatePackage', async (_, sourceId: string): Promise<boolean> => {
+    return await updatePackage(sourceId)
+  })
 
   ipcMain.handle('loadRegistry', (): LocalInstalledPackage[] => {
     return getLocallyInstalledPackages()
