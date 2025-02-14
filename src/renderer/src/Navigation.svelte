@@ -14,7 +14,7 @@
   }
   const selectButton = (direction: 'next' | 'prev'): void => {
     const buttons = buttonsContainer.querySelectorAll('button')
-    const activeButton = buttonsContainer.querySelector('.is-active') as HTMLButtonElement
+    const activeButton = buttonsContainer.querySelector('.btn-active') as HTMLButtonElement
     const index = Array.from(buttons).indexOf(activeButton)
     let newIndex = 0
     if (direction === 'next') {
@@ -46,35 +46,32 @@
   })
 </script>
 
-<div class="container">
-  <nav class="navbar" aria-label="main navigation">
-    <div class="navbar-brand p-2">
-      <div class="navbar-start">
-        <div class="navbar-item">
-          <div class="buttons" bind:this={buttonsContainer}>
-            <button
-              class="button {$activeView === 'installed' ? 'is-active is-primary' : 'is-secondary'}"
-              data-action="installed"
-              on:click={handleTopButtonsClick}
-            >
-              <span class="icon">
-                <i class="fa fa-bolt"></i>
-              </span>
-              <strong>Installed</strong>
-            </button>
-            <button
-              class="button {$activeView === 'registry' ? 'is-active is-primary' : 'is-secondary'}"
-              data-action="registry"
-              on:click={handleTopButtonsClick}
-            >
-              <span class="icon">
-                <i class="fa-solid fa-cloud"></i>
-              </span>
-              <strong>Registry</strong>
-            </button>
-          </div>
-        </div>
-      </div>
+<div class="navbar bg-base-300 sticky top-0 z-10">
+  <div class="flex-1" bind:this={buttonsContainer}>
+    <button
+      class="btn {$activeView === 'installed' ? 'btn-active' : ''}"
+      data-action="installed"
+      on:click={handleTopButtonsClick}
+    >
+      <span class="icon">
+        <i class="fa fa-bolt"></i>
+      </span>
+      <strong>Installed</strong>
+    </button>
+    <button
+      class="btn {$activeView === 'registry' ? 'btn-active' : ''}"
+      data-action="registry"
+      on:click={handleTopButtonsClick}
+    >
+      <span class="icon">
+        <i class="fa-solid fa-cloud"></i>
+      </span>
+      <strong>Registry</strong>
+    </button>
+  </div>
+  <div class="flex-none gap-2">
+    <div class="form-control">
+      <input type="text" placeholder="Search" class="input input-bordered w-24 md:w-auto" />
     </div>
-  </nav>
+  </div>
 </div>

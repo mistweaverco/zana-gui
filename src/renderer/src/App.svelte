@@ -1,4 +1,5 @@
 <script lang="ts">
+  import './App.css'
   import Navigation from './Navigation.svelte'
   import InstalledView from './views/installed.svelte'
   import { useActiveView } from './stores'
