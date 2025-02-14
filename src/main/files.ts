@@ -19,7 +19,7 @@ const isUpdateAvailable = (localVersion: string, registryVersion: string): boole
   return false
 }
 
-export const setLocalPackageVersionToRegistryVersion = (sourceId: string): void => {
+export const installOrUpdatePackage = async (sourceId: string): Promise<boolean> => {
   const registryData = getRegistryData()
   const localPackages = getLocalPackages()
 
@@ -29,28 +29,47 @@ export const setLocalPackageVersionToRegistryVersion = (sourceId: string): void 
   const registryPackage = registryData.find(
     (registryPackage: RegistryPackage) => registryPackage.source.id === sourceId
   )
-
-  if (!localPackage || !registryPackage) {
-    return
+  if (!registryPackage) {
+    return false
   }
-
-  localPackage.version = registryPackage.version
-
-  const updatedLocalPackages = localPackages.map((localPackage: LocalPackage) => {
-    if (localPackage.sourceId === sourceId) {
-      return localPackage
+  if (!localPackage) {
+    localPackages.push({ sourceId, version: registryPackage.version })
+  }
+  if (!localPackage || isUpdateAvailable(localPackage.version, registryPackage.version)) {
+    const targetPackage = localPackages.find(
+      (localPackage: LocalPackage) => localPackage.sourceId === sourceId
+    )
+    if (targetPackage) {
+      targetPackage.version = registryPackage.version
     }
-    return localPackage
-  })
+  }
+  fs.writeFileSync(PACKAGES_FILE, JSON.stringify({ packages: localPackages }, null, 2))
+  return true
+}
 
-  fs.writeFileSync(PACKAGES_FILE, JSON.stringify({ packages: updatedLocalPackages }, null, 2))
+export const removePackage = (sourceId: string): LocalInstalledPackage[] => {
+  const localPackages = getLocalPackages()
+  const newLocalPackages = localPackages.filter(
+    (localPackage: LocalPackage) => localPackage.sourceId !== sourceId
+  )
+  fs.writeFileSync(PACKAGES_FILE, JSON.stringify({ packages: newLocalPackages }, null, 2))
+  return getLocallyInstalledPackages()
 }
 
 export const getRegistryData = (): RegistryPackage[] => {
   if (!fs.existsSync(REGISTRY_FILE)) {
     return []
   }
-  return JSON.parse(fs.readFileSync(REGISTRY_FILE, 'utf-8')) as RegistryPackage[]
+  const pkgs = JSON.parse(fs.readFileSync(REGISTRY_FILE, 'utf-8')) as RegistryPackage[]
+  return pkgs.sort((a: RegistryPackage, b: RegistryPackage) => {
+    if (a.name < b.name) {
+      return -1
+    }
+    if (a.name > b.name) {
+      return 1
+    }
+    return 0
+  })
 }
 
 export const getPackageBySourceId = (sourceId: string): RegistryPackage | null => {

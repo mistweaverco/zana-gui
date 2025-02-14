@@ -1,7 +1,25 @@
 <script lang="ts">
   import { onMount } from 'svelte'
-  import { useActiveView } from './stores'
+  import {
+    useActiveLocalPackageIndex,
+    useActiveRemotePackageIndex,
+    useActiveView,
+    useLocalFilteredPackages,
+    useLocalInstalledPackages,
+    useRegistryFilteredPackages,
+    useRegistryPackages,
+    useSearchInputElement
+  } from './stores'
   const activeView = useActiveView()
+  const searchInputElement = useSearchInputElement()
+
+  const localInstalledPackages = useLocalInstalledPackages()
+  const localFilteredPackages = useLocalFilteredPackages()
+  const registryPackages = useRegistryPackages()
+  const registryFilteredPackages = useRegistryFilteredPackages()
+
+  let activeLocalPackageIndex = useActiveLocalPackageIndex()
+  let activeRemotePackageIndex = useActiveRemotePackageIndex()
 
   let buttonsContainer: HTMLDivElement
 
@@ -12,6 +30,24 @@
 
     $activeView = root.dataset.action
   }
+
+  const onSearchFormSubmit = (evt: Event): void => {
+    evt.preventDefault()
+    $searchInputElement.blur()
+    const value = $searchInputElement.value
+    if ($activeView === 'installed') {
+      $activeLocalPackageIndex = 0
+      $localFilteredPackages = $localInstalledPackages.filter((pkg) => {
+        return pkg.name.toLowerCase().includes(value.toLowerCase())
+      })
+    } else if ($activeView === 'registry') {
+      $activeRemotePackageIndex = 0
+      $registryFilteredPackages = $registryPackages.filter((pkg) => {
+        return pkg.name.toLowerCase().includes(value.toLowerCase())
+      })
+    }
+  }
+
   const selectButton = (direction: 'next' | 'prev'): void => {
     const buttons = buttonsContainer.querySelectorAll('button')
     const activeButton = buttonsContainer.querySelector('.btn-primary') as HTMLButtonElement
@@ -33,13 +69,29 @@
   onMount(() => {
     document.addEventListener('keydown', (evt) => {
       switch (evt.key) {
+        case 'Escape':
+          if (evt.target === $searchInputElement) {
+            evt.preventDefault()
+            $searchInputElement.blur()
+          }
+          break
+        case '/':
+          if (evt.target !== $searchInputElement) {
+            evt.preventDefault()
+            $searchInputElement.focus()
+          }
+          break
         case 'l':
         case 'ArrowRight':
-          selectButton('next')
+          if (evt.target !== $searchInputElement) {
+            selectButton('next')
+          }
           break
         case 'h':
         case 'ArrowLeft':
-          selectButton('prev')
+          if (evt.target !== $searchInputElement) {
+            selectButton('prev')
+          }
           break
       }
     })
@@ -71,7 +123,14 @@
   </div>
   <div class="flex-none gap-2">
     <div class="form-control">
-      <input type="text" placeholder="Search" class="input input-bordered w-24 md:w-auto" />
+      <form on:submit={onSearchFormSubmit}>
+        <input
+          type="text"
+          placeholder="Search"
+          bind:this={$searchInputElement}
+          class="input input-bordered w-24 md:w-auto"
+        />
+      </form>
     </div>
   </div>
 </div>

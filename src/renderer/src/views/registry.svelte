@@ -1,13 +1,20 @@
 <script lang="ts">
   import { onMount } from 'svelte'
-  import { useRegistryPackages, useLocalInstalledPackages, useActiveRemotePackageIndex } from './../stores'
+  import {
+    useActiveRemotePackageIndex,
+    useLocalInstalledPackages,
+    useRegistryFilteredPackages,
+    useRegistryPackages,
+    useSearchInputElement
+  } from './../stores'
   let loadingModal: HTMLDialogElement
   let infoModal: HTMLDialogElement
 
   let registryPackages = useRegistryPackages()
+  let registryFilteredPackages = useRegistryFilteredPackages()
   let localPackages = useLocalInstalledPackages()
+  let searchInputElement = useSearchInputElement()
 
-  let remotePackageItems = []
   let activePackageIndex = useActiveRemotePackageIndex()
 
   let infoModalContent = ''
@@ -19,39 +26,42 @@
   }
 
   const onRemotePackageItemClick = (evt: MouseEvent): void => {
-    remotePackageItems.forEach((item) => {
-      item.classList.remove('text-primary-content', 'bg-primary')
-    })
     const target = evt.target as HTMLElement
     const root = target.closest('.remote-package-item')
-    const index = remotePackageItems.indexOf(root)
-    $activePackageIndex = index
+    const table = root.closest('table')
+    const items = table.querySelectorAll('.remote-package-item')
+    items.forEach((item, i) => {
+      if (item === root) {
+        $activePackageIndex = i
+      }
+      item.classList.remove('text-primary-content', 'bg-primary')
+    })
     root.classList.add('text-primary-content', 'bg-primary')
   }
 
   const selectPackage = (direction: 'next' | 'prev'): void => {
-    const activeItem = remotePackageItems[$activePackageIndex]
-    const index = remotePackageItems.indexOf(activeItem)
+    const items = document.querySelectorAll('.remote-package-item')
     let newIndex = 0
     if (direction === 'next') {
-      newIndex = index + 1
+      newIndex = $activePackageIndex + 1
     } else {
-      newIndex = index - 1
+      newIndex = $activePackageIndex - 1
     }
     if (newIndex < 0) {
-      newIndex = remotePackageItems.length - 1
-    } else if (newIndex >= remotePackageItems.length) {
+      newIndex = items.length - 1
+    } else if (newIndex >= items.length) {
       newIndex = 0
     }
-    remotePackageItems[newIndex].click()
-    remotePackageItems[newIndex].scrollIntoView({ behavior: 'smooth', block: 'center' })
+    const item = items[newIndex] as HTMLElement
+    item.click()
+    item.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
 
   const installSelectedPackage = async (): Promise<void> => {
     loadingModal.showModal()
     loadingText = 'Installing package ...'
-    const pkg = $registryPackages[$activePackageIndex]
-    const updatedPkg = await window.zana.updatePackage(pkg.source.id)
+    const pkg = $registryFilteredPackages[$activePackageIndex]
+    const updatedPkg = await window.zana.installPackage(pkg.source.id)
     if (updatedPkg) {
       $localPackages = await window.zana.loadRegistry()
     } else {
@@ -65,24 +75,27 @@
       loadingModal.showModal()
       await window.zana.downloadRegistry()
       $registryPackages = await window.zana.getRegistry()
-      loadingText = 'Loading registry ...'
-      loadingModal.close()
     }
+    if ($registryFilteredPackages.length === 0) {
+      $registryFilteredPackages = $registryPackages
+    }
+    loadingText = 'Loading registry ...'
+    loadingModal.close()
     window.onkeydown = (evt: KeyboardEvent): void => {
       switch (evt.key) {
         case 'q':
-          window.zana.quitApp()
+          if (evt.target !== $searchInputElement) window.zana.quitApp()
           break
-        case 'Enter':
-          installSelectedPackage()
+        case 'i':
+          if (evt.target !== $searchInputElement) installSelectedPackage()
           break
         case 'ArrowDown':
         case 'j':
-          selectPackage('next')
+          if (evt.target !== $searchInputElement) selectPackage('next')
           break
         case 'ArrowUp':
         case 'k':
-          selectPackage('prev')
+          if (evt.target !== $searchInputElement) selectPackage('prev')
           break
       }
     }
@@ -118,7 +131,7 @@
 </dialog>
 
 <div class="overflow-x-auto">
-  <table class="table">
+  <table class="table w-full">
     <!-- head -->
     <thead>
       <tr>
@@ -128,12 +141,11 @@
       </tr>
     </thead>
     <tbody>
-      {#each $registryPackages as pkg, i}
+      {#each $registryFilteredPackages as pkg, i}
         <tr
           class="remote-package-item {i === $activePackageIndex
             ? 'bg-primary text-primary-content'
             : ''}"
-          bind:this={remotePackageItems[i]}
           on:click={onRemotePackageItemClick}
         >
           <td>{pkg.name}</td>
@@ -146,3 +158,9 @@
     </tbody>
   </table>
 </div>
+
+<style>
+  td {
+    vertical-align: top;
+  }
+</style>

@@ -1,13 +1,20 @@
 <script lang="ts">
   import { onMount } from 'svelte'
-  import { useRegistryPackages, useLocalInstalledPackages, useActiveLocalPackageIndex } from './../stores'
+  import {
+    useActiveLocalPackageIndex,
+    useLocalFilteredPackages,
+    useLocalInstalledPackages,
+    useRegistryPackages,
+    useSearchInputElement
+  } from './../stores'
   let loadingModal: HTMLDialogElement
   let infoModal: HTMLDialogElement
 
-  let localPackages = useLocalInstalledPackages()
+  let searchInputElement = useSearchInputElement()
+  let localInstalledPackages = useLocalInstalledPackages()
+  let localFilteredPackages = useLocalFilteredPackages()
   let registryPackages = useRegistryPackages()
 
-  let localPackageItems = []
   let activePackageIndex = useActiveLocalPackageIndex()
 
   let infoModalContent = ''
@@ -19,32 +26,35 @@
   }
 
   const onLocalPackageItemClick = (evt: MouseEvent): void => {
-    localPackageItems.forEach((item) => {
-      item.classList.remove('text-primary-content', 'bg-primary')
-    })
     const target = evt.target as HTMLElement
     const root = target.closest('.local-package-item')
-    const index = localPackageItems.indexOf(root)
-    $activePackageIndex = index
+    const table = root.closest('table')
+    const items = table.querySelectorAll('.local-package-item')
+    items.forEach((item, i) => {
+      if (item === root) {
+        $activePackageIndex = i
+      }
+      item.classList.remove('text-primary-content', 'bg-primary')
+    })
     root.classList.add('text-primary-content', 'bg-primary')
   }
 
   const selectPackage = (direction: 'next' | 'prev'): void => {
-    const activeItem = localPackageItems[$activePackageIndex]
-    const index = localPackageItems.indexOf(activeItem)
+    const items = document.querySelectorAll('.local-package-item')
     let newIndex = 0
     if (direction === 'next') {
-      newIndex = index + 1
+      newIndex = $activePackageIndex + 1
     } else {
-      newIndex = index - 1
+      newIndex = $activePackageIndex - 1
     }
     if (newIndex < 0) {
-      newIndex = localPackageItems.length - 1
-    } else if (newIndex >= localPackageItems.length) {
+      newIndex = items.length - 1
+    } else if (newIndex >= items.length) {
       newIndex = 0
     }
-    localPackageItems[newIndex].click()
-    localPackageItems[newIndex].scrollIntoView({ behavior: 'smooth', block: 'center' })
+    const item = items[newIndex] as HTMLElement
+    item.click()
+    item.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
 
   const updateAllPackages = async (): Promise<void> => {
@@ -52,22 +62,38 @@
     loadingText = 'Updating all packages ...'
     const updatedPackages = await window.zana.updateAllPackages()
     if (updatedPackages) {
-      $localPackages = await window.zana.loadRegistry()
+      $localFilteredPackages = await window.zana.loadRegistry()
     } else {
       showInfoModal('Failed to update packages')
     }
     loadingModal.close()
   }
 
-  const updateSelectedPackage = async (): Promise<void> => {
+  const removeSelectedPackage = async (): Promise<void> => {
+    loadingModal.showModal()
+    loadingText = 'Removing package ...'
+    const pkg = $localFilteredPackages[$activePackageIndex]
+    const res = await window.zana.removePackage(pkg.source.id)
+    if (res) {
+      $activePackageIndex = $activePackageIndex > 0 ? $activePackageIndex - 1 : 0
+      $localFilteredPackages = res
+      loadingModal.close()
+    } else {
+      showInfoModal('Failed to update package')
+      loadingModal.close()
+    }
+  }
+
+  const installSelectedPackage = async (): Promise<void> => {
     loadingModal.showModal()
     loadingText = 'Updating package ...'
-    const pkg = $localPackages[$activePackageIndex]
-    const updatedPkg = await window.zana.updatePackage(pkg.source.id)
+    const pkg = $localFilteredPackages[$activePackageIndex]
+    const updatedPkg = await window.zana.installPackage(pkg.source.id)
     console.log(updatedPkg)
     if (updatedPkg) {
-      $localPackages[$activePackageIndex].localVersion = $localPackages[$activePackageIndex].version
-      $localPackages[$activePackageIndex].updateAvailable = false
+      $localFilteredPackages[$activePackageIndex].localVersion =
+        $localFilteredPackages[$activePackageIndex].version
+      $localFilteredPackages[$activePackageIndex].updateAvailable = false
     } else {
       showInfoModal('Failed to update package')
     }
@@ -75,32 +101,36 @@
   }
 
   onMount(async () => {
-    if ($localPackages.length === 0) {
+    if ($localInstalledPackages.length === 0) {
       loadingModal.showModal()
       await window.zana.downloadRegistry()
       $registryPackages = await window.zana.getRegistry()
-      $localPackages = await window.zana.loadRegistry()
+      $localInstalledPackages = await window.zana.loadRegistry()
+      $localFilteredPackages = $localInstalledPackages
       loadingText = 'Checking for updates ...'
       loadingModal.close()
     }
     window.onkeydown = (evt: KeyboardEvent): void => {
       switch (evt.key) {
         case 'q':
-          window.zana.quitApp()
+          if (evt.target !== $searchInputElement) window.zana.quitApp()
+          break
+        case 'x':
+          if (evt.target !== $searchInputElement) removeSelectedPackage()
           break
         case 'U':
-          updateAllPackages()
+          if (evt.target !== $searchInputElement) updateAllPackages()
           break
         case 'u':
-          updateSelectedPackage()
+          if (evt.target !== $searchInputElement) installSelectedPackage()
           break
         case 'ArrowDown':
         case 'j':
-          selectPackage('next')
+          if (evt.target !== $searchInputElement) selectPackage('next')
           break
         case 'ArrowUp':
         case 'k':
-          selectPackage('prev')
+          if (evt.target !== $searchInputElement) selectPackage('prev')
           break
       }
     }
@@ -145,23 +175,27 @@
       </tr>
     </thead>
     <tbody>
-      {#each $localPackages as pkg, i}
-        <tr
-          class="local-package-item {i === $activePackageIndex
-            ? 'bg-primary text-primary-content'
-            : ''}"
-          bind:this={localPackageItems[i]}
-          on:click={onLocalPackageItemClick}
-        >
-          <td>{pkg.name}</td>
-          <td>
-            {#if pkg.updateAvailable}
-              <span class="text-accent">Update available {pkg.localVersion} -> {pkg.version}</span>
-            {:else}
-              <span>{pkg.localVersion}</span>
-            {/if}
-          </td>
-        </tr>
+      {#each $localFilteredPackages as pkg, i}
+        {#if $searchInputElement.value === '' || pkg.name
+            .toLowerCase()
+            .includes($searchInputElement.value.toLowerCase())}
+          <tr
+            class="local-package-item {i === $activePackageIndex
+              ? 'bg-primary text-primary-content'
+              : ''}"
+            on:click={onLocalPackageItemClick}
+          >
+            <td>{pkg.name}</td>
+            <td>
+              {#if pkg.updateAvailable}
+                <span class="text-accent">Update available {pkg.localVersion} -> {pkg.version}</span
+                >
+              {:else}
+                <span>{pkg.localVersion}</span>
+              {/if}
+            </td>
+          </tr>
+        {/if}
       {/each}
     </tbody>
   </table>

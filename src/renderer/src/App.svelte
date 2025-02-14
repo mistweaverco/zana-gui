@@ -7,14 +7,20 @@
     useActiveLocalPackageIndex,
     useActiveRemotePackageIndex,
     useActiveView,
+    useLocalFilteredPackages,
     useLocalInstalledPackages,
-    useRegistryPackages
+    useRegistryFilteredPackages,
+    useRegistryPackages,
+    useSearchInputElement
   } from './stores'
   const activeView = useActiveView()
-  useLocalInstalledPackages()
-  useRegistryPackages()
   useActiveLocalPackageIndex()
   useActiveRemotePackageIndex()
+  useLocalInstalledPackages()
+  useRegistryPackages()
+  useLocalFilteredPackages()
+  useRegistryFilteredPackages()
+  useSearchInputElement()
 </script>
 
 <Navigation />

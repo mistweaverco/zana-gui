@@ -1,4 +1,4 @@
-import { setLocalPackageVersionToRegistryVersion } from './../files'
+import { installOrUpdatePackage } from './../files'
 import { github } from './github'
 import { npm } from './npm'
 
@@ -13,11 +13,11 @@ export const detectProvider = (sourceId: string): 'npm' | 'github' | null => {
   }
 }
 
-export const updatePackage = async (sourceId: string): Promise<boolean> => {
+export const installPackage = async (sourceId: string): Promise<boolean> => {
   switch (detectProvider(sourceId)) {
     case 'npm':
       if (await npm.install(sourceId)) {
-        setLocalPackageVersionToRegistryVersion(sourceId)
+        installOrUpdatePackage(sourceId)
         return true
       }
       return false
