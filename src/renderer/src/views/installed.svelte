@@ -1,10 +1,10 @@
 <script lang="ts">
   import { onMount } from 'svelte'
-  import { useLocalPackages } from './../stores'
+  import { useLocalInstalledPackages } from './../stores'
   let loadingModal: HTMLDialogElement
   let infoModal: HTMLDialogElement
 
-  let localPackages = useLocalPackages()
+  let localPackages = useLocalInstalledPackages()
   let localPackageItems = []
   let activePackageIndex = 0
 
@@ -73,11 +73,14 @@
   }
 
   onMount(async () => {
-    loadingModal.showModal()
-    await window.zana.downloadRegistry()
-    $localPackages = await window.zana.loadRegistry()
-    loadingText = 'Checking for updates ...'
-    loadingModal.close()
+    if ($localPackages.length === 0) {
+      loadingModal.showModal()
+      await window.zana.downloadRegistry()
+      $localPackages = await window.zana.loadRegistry()
+      loadingText = 'Checking for updates ...'
+      loadingModal.close()
+      return
+    }
     window.onkeydown = (evt: KeyboardEvent): void => {
       switch (evt.key) {
         case 'q':

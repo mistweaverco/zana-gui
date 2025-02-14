@@ -2,8 +2,9 @@
   import './App.css'
   import Navigation from './Navigation.svelte'
   import InstalledView from './views/installed.svelte'
-  import { useActiveView } from './stores'
+  import { useActiveView, useLocalInstalledPackages } from './stores'
   const activeView = useActiveView()
+  useLocalInstalledPackages()
 </script>
 
 <Navigation />
