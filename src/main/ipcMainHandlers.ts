@@ -1,6 +1,6 @@
 import { app, ipcMain } from 'electron'
-import type { LocalInstalledPackage } from './../types'
-import { ensureDir, getLocallyInstalledPackages } from './files'
+import type { LocalInstalledPackage, RegistryPackage } from './../types'
+import { ensureDir, getLocallyInstalledPackages, getRegistryData } from './files'
 import { downloadRegistry } from './registry'
 import { APP_DIR } from './constants'
 import { updatePackage } from './providers'
@@ -24,6 +24,10 @@ export const ipcMainHandlersInit = (): void => {
 
   ipcMain.handle('updatePackage', async (_, sourceId: string): Promise<boolean> => {
     return await updatePackage(sourceId)
+  })
+
+  ipcMain.handle('getRegistry', (): RegistryPackage[] => {
+    return getRegistryData()
   })
 
   ipcMain.handle('loadRegistry', (): LocalInstalledPackage[] => {

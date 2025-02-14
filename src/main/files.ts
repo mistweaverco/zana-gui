@@ -46,7 +46,7 @@ export const setLocalPackageVersionToRegistryVersion = (sourceId: string): void 
   fs.writeFileSync(PACKAGES_FILE, JSON.stringify({ packages: updatedLocalPackages }, null, 2))
 }
 
-const getRegistryData = (): RegistryPackage[] => {
+export const getRegistryData = (): RegistryPackage[] => {
   if (!fs.existsSync(REGISTRY_FILE)) {
     return []
   }

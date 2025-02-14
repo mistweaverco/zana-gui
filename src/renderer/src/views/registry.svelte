@@ -1,12 +1,14 @@
 <script lang="ts">
   import { onMount } from 'svelte'
-  import { useLocalInstalledPackages, useActiveLocalPackageIndex } from './../stores'
+  import { useRegistryPackages, useLocalInstalledPackages, useActiveRemotePackageIndex } from './../stores'
   let loadingModal: HTMLDialogElement
   let infoModal: HTMLDialogElement
 
+  let registryPackages = useRegistryPackages()
   let localPackages = useLocalInstalledPackages()
-  let localPackageItems = []
-  let activePackageIndex = useActiveLocalPackageIndex()
+
+  let remotePackageItems = []
+  let activePackageIndex = useActiveRemotePackageIndex()
 
   let infoModalContent = ''
   let loadingText = 'Downloading registry ...'
@@ -16,20 +18,20 @@
     infoModal.showModal()
   }
 
-  const onLocalPackageItemClick = (evt: MouseEvent): void => {
-    localPackageItems.forEach((item) => {
+  const onRemotePackageItemClick = (evt: MouseEvent): void => {
+    remotePackageItems.forEach((item) => {
       item.classList.remove('text-primary-content', 'bg-primary')
     })
     const target = evt.target as HTMLElement
-    const root = target.closest('.local-package-item')
-    const index = localPackageItems.indexOf(root)
+    const root = target.closest('.remote-package-item')
+    const index = remotePackageItems.indexOf(root)
     $activePackageIndex = index
     root.classList.add('text-primary-content', 'bg-primary')
   }
 
   const selectPackage = (direction: 'next' | 'prev'): void => {
-    const activeItem = localPackageItems[$activePackageIndex]
-    const index = localPackageItems.indexOf(activeItem)
+    const activeItem = remotePackageItems[$activePackageIndex]
+    const index = remotePackageItems.indexOf(activeItem)
     let newIndex = 0
     if (direction === 'next') {
       newIndex = index + 1
@@ -37,47 +39,33 @@
       newIndex = index - 1
     }
     if (newIndex < 0) {
-      newIndex = localPackageItems.length - 1
-    } else if (newIndex >= localPackageItems.length) {
+      newIndex = remotePackageItems.length - 1
+    } else if (newIndex >= remotePackageItems.length) {
       newIndex = 0
     }
-    localPackageItems[newIndex].click()
-    localPackageItems[newIndex].scrollIntoView({ behavior: 'smooth', block: 'center' })
+    remotePackageItems[newIndex].click()
+    remotePackageItems[newIndex].scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
 
-  const updateAllPackages = async (): Promise<void> => {
+  const installSelectedPackage = async (): Promise<void> => {
     loadingModal.showModal()
-    loadingText = 'Updating all packages ...'
-    const updatedPackages = await window.zana.updateAllPackages()
-    if (updatedPackages) {
+    loadingText = 'Installing package ...'
+    const pkg = $registryPackages[$activePackageIndex]
+    const updatedPkg = await window.zana.updatePackage(pkg.source.id)
+    if (updatedPkg) {
       $localPackages = await window.zana.loadRegistry()
     } else {
-      showInfoModal('Failed to update packages')
-    }
-    loadingModal.close()
-  }
-
-  const updateSelectedPackage = async (): Promise<void> => {
-    loadingModal.showModal()
-    loadingText = 'Updating package ...'
-    const pkg = $localPackages[$activePackageIndex]
-    const updatedPkg = await window.zana.updatePackage(pkg.source.id)
-    console.log(updatedPkg)
-    if (updatedPkg) {
-      $localPackages[$activePackageIndex].localVersion = $localPackages[$activePackageIndex].version
-      $localPackages[$activePackageIndex].updateAvailable = false
-    } else {
-      showInfoModal('Failed to update package')
+      showInfoModal('Failed to install package')
     }
     loadingModal.close()
   }
 
   onMount(async () => {
-    if ($localPackages.length === 0) {
+    if ($registryPackages.length === 0) {
       loadingModal.showModal()
       await window.zana.downloadRegistry()
-      $localPackages = await window.zana.loadRegistry()
-      loadingText = 'Checking for updates ...'
+      $registryPackages = await window.zana.getRegistry()
+      loadingText = 'Loading registry ...'
       loadingModal.close()
     }
     window.onkeydown = (evt: KeyboardEvent): void => {
@@ -85,11 +73,8 @@
         case 'q':
           window.zana.quitApp()
           break
-        case 'U':
-          updateAllPackages()
-          break
-        case 'u':
-          updateSelectedPackage()
+        case 'Enter':
+          installSelectedPackage()
           break
         case 'ArrowDown':
         case 'j':
@@ -138,25 +123,23 @@
     <thead>
       <tr>
         <th>Name</th>
+        <th>Description</th>
         <th>Version</th>
       </tr>
     </thead>
     <tbody>
-      {#each $localPackages as pkg, i}
+      {#each $registryPackages as pkg, i}
         <tr
-          class="local-package-item {i === $activePackageIndex
+          class="remote-package-item {i === $activePackageIndex
             ? 'bg-primary text-primary-content'
             : ''}"
-          bind:this={localPackageItems[i]}
-          on:click={onLocalPackageItemClick}
+          bind:this={remotePackageItems[i]}
+          on:click={onRemotePackageItemClick}
         >
           <td>{pkg.name}</td>
+          <td>{pkg.description}</td>
           <td>
-            {#if pkg.updateAvailable}
-              <span class="text-accent">Update available {pkg.localVersion} -> {pkg.version}</span>
-            {:else}
-              <span>{pkg.localVersion}</span>
-            {/if}
+            <span>{pkg.version}</span>
           </td>
         </tr>
       {/each}

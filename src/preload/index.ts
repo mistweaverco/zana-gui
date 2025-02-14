@@ -1,6 +1,6 @@
 import { ipcRenderer } from 'electron'
 import { contextBridge } from 'electron'
-import { LocalInstalledPackage } from '../types'
+import { RegistryPackage, LocalInstalledPackage } from '../types'
 
 const zana = {
   quitApp: async (): Promise<void> => {
@@ -11,6 +11,9 @@ const zana = {
   },
   downloadRegistry: async (): Promise<void> => {
     return await ipcRenderer.invoke('downloadRegistry')
+  },
+  getRegistry: async (): Promise<RegistryPackage[]> => {
+    return await ipcRenderer.invoke('getRegistry')
   },
   loadRegistry: async (): Promise<string> => {
     return await ipcRenderer.invoke('loadRegistry')

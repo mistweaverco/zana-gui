@@ -11,6 +11,7 @@ declare global {
       quitApp: () => Promise<void>
       getAppVersion: () => Promise<string>
       downloadRegistry: () => Promise<void>
+      getRegistry: () => Promise<RegistryPackage[] | null>
       loadRegistry: () => Promise<LocalInstalledPackage[] | null>
       updatePackage: (sourceId: string) => Promise<boolean>
       updateAllPackages: () => Promise<LocalInstalledPackage[] | null>

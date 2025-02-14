@@ -14,7 +14,7 @@
   }
   const selectButton = (direction: 'next' | 'prev'): void => {
     const buttons = buttonsContainer.querySelectorAll('button')
-    const activeButton = buttonsContainer.querySelector('.btn-active') as HTMLButtonElement
+    const activeButton = buttonsContainer.querySelector('.btn-primary') as HTMLButtonElement
     const index = Array.from(buttons).indexOf(activeButton)
     let newIndex = 0
     if (direction === 'next') {
@@ -49,7 +49,7 @@
 <div class="navbar bg-base-300 sticky top-0 z-10">
   <div class="flex-1" bind:this={buttonsContainer}>
     <button
-      class="btn {$activeView === 'installed' ? 'btn-active' : ''}"
+      class="btn {$activeView === 'installed' ? 'btn-primary' : ''}"
       data-action="installed"
       on:click={handleTopButtonsClick}
     >
@@ -59,7 +59,7 @@
       <strong>Installed</strong>
     </button>
     <button
-      class="btn {$activeView === 'registry' ? 'btn-active' : ''}"
+      class="btn {$activeView === 'registry' ? 'btn-primary' : ''}"
       data-action="registry"
       on:click={handleTopButtonsClick}
     >
