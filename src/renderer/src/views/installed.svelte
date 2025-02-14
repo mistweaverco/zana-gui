@@ -1,10 +1,12 @@
 <script lang="ts">
   import { onMount } from 'svelte'
-  import { useLocalInstalledPackages, useActiveLocalPackageIndex } from './../stores'
+  import { useRegistryPackages, useLocalInstalledPackages, useActiveLocalPackageIndex } from './../stores'
   let loadingModal: HTMLDialogElement
   let infoModal: HTMLDialogElement
 
   let localPackages = useLocalInstalledPackages()
+  let registryPackages = useRegistryPackages()
+
   let localPackageItems = []
   let activePackageIndex = useActiveLocalPackageIndex()
 
@@ -76,6 +78,7 @@
     if ($localPackages.length === 0) {
       loadingModal.showModal()
       await window.zana.downloadRegistry()
+      $registryPackages = await window.zana.getRegistry()
       $localPackages = await window.zana.loadRegistry()
       loadingText = 'Checking for updates ...'
       loadingModal.close()
