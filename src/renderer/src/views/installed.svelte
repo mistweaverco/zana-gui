@@ -76,7 +76,7 @@
     const res = await window.zana.removePackage(pkg.source.id)
     if (res) {
       $activePackageIndex = $activePackageIndex > 0 ? $activePackageIndex - 1 : 0
-      $localFilteredPackages = res
+      $localFilteredPackages = await window.zana.loadRegistry()
       loadingModal.close()
     } else {
       showInfoModal('Failed to update package')

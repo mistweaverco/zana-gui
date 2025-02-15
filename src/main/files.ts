@@ -47,13 +47,12 @@ export const installOrUpdatePackage = async (sourceId: string): Promise<boolean>
   return true
 }
 
-export const removePackage = (sourceId: string): LocalInstalledPackage[] => {
+export const removePackageFromLocalPackages = (sourceId: string): void => {
   const localPackages = getLocalPackages()
   const newLocalPackages = localPackages.filter(
     (localPackage: LocalPackage) => localPackage.sourceId !== sourceId
   )
   fs.writeFileSync(PACKAGES_FILE, JSON.stringify({ packages: newLocalPackages }, null, 2))
-  return getLocallyInstalledPackages()
 }
 
 export const getRegistryData = (): RegistryPackage[] => {

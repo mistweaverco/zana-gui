@@ -18,7 +18,7 @@ const zana = {
   loadRegistry: async (): Promise<string> => {
     return await ipcRenderer.invoke('loadRegistry')
   },
-  removePackage: async (sourceId: string): Promise<LocalInstalledPackage[]> => {
+  removePackage: async (sourceId: string): Promise<boolean> => {
     return ipcRenderer.invoke('removePackage', sourceId)
   },
   installPackage: async (sourceId: string): Promise<boolean> => {
