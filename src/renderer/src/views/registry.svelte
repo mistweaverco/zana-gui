@@ -2,6 +2,7 @@
   import { onMount } from 'svelte'
   import {
     useActiveRemotePackageIndex,
+    useLocalFilteredPackages,
     useLocalInstalledPackages,
     useRegistryFilteredPackages,
     useRegistryPackages,
@@ -12,6 +13,7 @@
 
   let registryPackages = useRegistryPackages()
   let registryFilteredPackages = useRegistryFilteredPackages()
+  let localFilteredPackages = useLocalFilteredPackages()
   let localPackages = useLocalInstalledPackages()
   let searchInputElement = useSearchInputElement()
 
@@ -64,6 +66,7 @@
     const updatedPkg = await window.zana.installPackage(pkg.source.id)
     if (updatedPkg) {
       $localPackages = await window.zana.loadRegistry()
+      $localFilteredPackages = $localPackages
     } else {
       showInfoModal('Failed to install package')
     }
