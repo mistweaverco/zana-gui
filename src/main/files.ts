@@ -103,39 +103,31 @@ export const getLocalPackages = (): LocalPackage[] => {
 }
 
 export const getLocallyInstalledPackages = (): LocalInstalledPackage[] => {
-  if (!fs.existsSync(REGISTRY_FILE)) {
-    return []
-  }
-  if (!fs.existsSync(PACKAGES_FILE)) {
+  if (!fs.existsSync(REGISTRY_FILE) || !fs.existsSync(PACKAGES_FILE)) {
     return []
   }
 
-  const registryData = JSON.parse(fs.readFileSync(REGISTRY_FILE, 'utf-8'))
-  const localPackages = JSON.parse(fs.readFileSync(PACKAGES_FILE, 'utf-8'))
+  const registryData: RegistryPackage[] = JSON.parse(fs.readFileSync(REGISTRY_FILE, 'utf-8'))
+  const localPackagesData = JSON.parse(fs.readFileSync(PACKAGES_FILE, 'utf-8'))
+  const localPackages: LocalPackage[] = localPackagesData.packages
 
-  return localPackages.packages
-    .filter((localPackage: LocalPackage) =>
-      registryData.some(
-        (registryPackage: RegistryPackage) => registryPackage.source.id === localPackage.sourceId
-      )
+  return registryData
+    .filter((registryPackage): registryPackage is LocalInstalledPackage =>
+      localPackages.some((localPackage) => registryPackage.source.id === localPackage.sourceId)
     )
-    .map((localPackage: LocalPackage) => {
-      const registryPackage = registryData.find(
-        (registryPackage: RegistryPackage) => registryPackage.source.id === localPackage.sourceId
+    .map((registryPackage) => {
+      const localPackage = localPackages.find(
+        (localPackage) => localPackage.sourceId === registryPackage.source.id
       )
+
       return {
         ...registryPackage,
-        localVersion: localPackage.version,
-        updateAvailable: isUpdateAvailable(localPackage.version, registryPackage.version)
+        localVersion: localPackage ? localPackage.version : '',
+        updateAvailable:
+          localPackage && registryPackage.version
+            ? isUpdateAvailable(localPackage.version, registryPackage.version)
+            : false
       }
     })
-    .sort((a: LocalInstalledPackage, b: LocalInstalledPackage) => {
-      if (a.name < b.name) {
-        return -1
-      }
-      if (a.name > b.name) {
-        return 1
-      }
-      return 0
-    })
+    .sort((a, b) => a.name.localeCompare(b.name))
 }
