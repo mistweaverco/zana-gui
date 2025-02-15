@@ -13,11 +13,15 @@ export const detectProvider = (sourceId: string): 'npm' | 'github' | null => {
   }
 }
 
-export const installPackage = async (sourceId: string): Promise<boolean> => {
+export const syncPackages = async (): Promise<boolean> => {
+  return await npm.sync()
+}
+
+export const installPackage = async (sourceId: string, version: string): Promise<boolean> => {
   switch (detectProvider(sourceId)) {
     case 'npm':
-      if (await npm.install(sourceId)) {
-        installOrUpdatePackage(sourceId)
+      if (await npm.install(sourceId, version)) {
+        installOrUpdatePackage(sourceId, version)
         return true
       }
       return false

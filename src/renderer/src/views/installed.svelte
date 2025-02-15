@@ -88,7 +88,7 @@
     loadingModal.showModal()
     loadingText = 'Updating package ...'
     const pkg = $localFilteredPackages[$activePackageIndex]
-    const updatedPkg = await window.zana.installPackage(pkg.source.id)
+    const updatedPkg = await window.zana.installPackage(pkg.source.id, pkg.version)
     console.log(updatedPkg)
     if (updatedPkg) {
       $localFilteredPackages[$activePackageIndex].localVersion =
@@ -105,9 +105,11 @@
       loadingModal.showModal()
       await window.zana.downloadRegistry()
       $registryPackages = await window.zana.getRegistry()
+      loadingText = 'Checking for updates ...'
       $localInstalledPackages = await window.zana.loadRegistry()
       $localFilteredPackages = $localInstalledPackages
-      loadingText = 'Checking for updates ...'
+      loadingText = 'Syncing with zana-lock.json ...'
+      await window.zana.syncPackages()
       loadingModal.close()
     }
     window.onkeydown = (evt: KeyboardEvent): void => {

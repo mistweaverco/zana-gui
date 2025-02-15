@@ -21,8 +21,11 @@ const zana = {
   removePackage: async (sourceId: string): Promise<boolean> => {
     return ipcRenderer.invoke('removePackage', sourceId)
   },
-  installPackage: async (sourceId: string): Promise<boolean> => {
-    return await ipcRenderer.invoke('installPackage', sourceId)
+  installPackage: async (sourceId: string, version: string): Promise<boolean> => {
+    return await ipcRenderer.invoke('installPackage', sourceId, version)
+  },
+  syncPackages: async (): Promise<boolean> => {
+    return await ipcRenderer.invoke('syncPackages')
   },
   updateAllPackages: async (): Promise<LocalInstalledPackage[] | null> => {
     return await ipcRenderer.invoke('updateAllPackages')

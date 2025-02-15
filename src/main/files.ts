@@ -19,7 +19,10 @@ const isUpdateAvailable = (localVersion: string, registryVersion: string): boole
   return false
 }
 
-export const installOrUpdatePackage = async (sourceId: string): Promise<boolean> => {
+export const installOrUpdatePackage = async (
+  sourceId: string,
+  version: string
+): Promise<boolean> => {
   const registryData = getRegistryData()
   const localPackages = getLocalPackages()
 
@@ -33,7 +36,7 @@ export const installOrUpdatePackage = async (sourceId: string): Promise<boolean>
     return false
   }
   if (!localPackage) {
-    localPackages.push({ sourceId, version: registryPackage.version })
+    localPackages.push({ sourceId, version })
   }
   if (!localPackage || isUpdateAvailable(localPackage.version, registryPackage.version)) {
     const targetPackage = localPackages.find(
@@ -43,6 +46,17 @@ export const installOrUpdatePackage = async (sourceId: string): Promise<boolean>
       targetPackage.version = registryPackage.version
     }
   }
+  // Sort localPackages by sourceId, so that the file is always the same
+  // and people using git, don't get a lot of changes and freak out
+  localPackages.sort((a: LocalPackage, b: LocalPackage) => {
+    if (a.sourceId < b.sourceId) {
+      return -1
+    }
+    if (a.sourceId > b.sourceId) {
+      return 1
+    }
+    return 0
+  })
   fs.writeFileSync(PACKAGES_FILE, JSON.stringify({ packages: localPackages }, null, 2))
   return true
 }

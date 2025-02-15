@@ -13,7 +13,8 @@ declare global {
       downloadRegistry: () => Promise<void>
       getRegistry: () => Promise<RegistryPackage[] | null>
       loadRegistry: () => Promise<LocalInstalledPackage[] | null>
-      installPackage: (sourceId: string) => Promise<boolean>
+      installPackage: (sourceId: string, version: string) => Promise<boolean>
+      syncPackages: () => Promise<boolean>
       removePackage: (sourceId: string) => Promise<boolean>
       updateAllPackages: () => Promise<LocalInstalledPackage[] | null>
     }

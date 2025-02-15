@@ -3,7 +3,7 @@ import type { LocalInstalledPackage, RegistryPackage } from './../types'
 import { ensureDir, getLocallyInstalledPackages, getRegistryData } from './files'
 import { downloadRegistry } from './registry'
 import { APP_DIR } from './constants'
-import { installPackage, removePackage } from './providers'
+import { installPackage, removePackage, syncPackages } from './providers'
 
 // Make sure appDir exists
 ensureDir(APP_DIR)
@@ -26,9 +26,16 @@ export const ipcMainHandlersInit = (): void => {
     return null
   })
 
-  ipcMain.handle('installPackage', async (_, sourceId: string): Promise<boolean> => {
-    return await installPackage(sourceId)
+  ipcMain.handle('syncPackages', async (): Promise<boolean> => {
+    return await syncPackages()
   })
+
+  ipcMain.handle(
+    'installPackage',
+    async (_, sourceId: string, version: string): Promise<boolean> => {
+      return await installPackage(sourceId, version)
+    }
+  )
 
   ipcMain.handle('getRegistry', (): RegistryPackage[] => {
     return getRegistryData()

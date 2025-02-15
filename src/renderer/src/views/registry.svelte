@@ -63,7 +63,7 @@
     loadingModal.showModal()
     loadingText = 'Installing package ...'
     const pkg = $registryFilteredPackages[$activePackageIndex]
-    const updatedPkg = await window.zana.installPackage(pkg.source.id)
+    const updatedPkg = await window.zana.installPackage(pkg.source.id, pkg.version)
     if (updatedPkg) {
       $localPackages = await window.zana.loadRegistry()
       $localFilteredPackages = $localPackages
