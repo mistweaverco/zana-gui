@@ -31,7 +31,7 @@
     $activeView = root.dataset.action
   }
 
-  const onSearchFormSubmit = (evt: Event): void => {
+  const onSearchFormSubmit = async (evt: Event): Promise<void> => {
     evt.preventDefault()
     $searchInputElement.blur()
     const value = $searchInputElement.value
@@ -41,10 +41,15 @@
         return pkg.name.toLowerCase().includes(value.toLowerCase())
       })
     } else if ($activeView === 'registry') {
+      const localPackages = await window.zana.loadRegistry()
       $activeRemotePackageIndex = 0
-      $registryFilteredPackages = $registryPackages.filter((pkg) => {
-        return pkg.name.toLowerCase().includes(value.toLowerCase())
-      })
+      $registryFilteredPackages = $registryPackages
+        .filter((pkg) => {
+          return pkg.name.toLowerCase().includes(value.toLowerCase())
+        }) // filter already installed packages
+        .filter((pkg) => {
+          return !localPackages.some((localPkg) => localPkg.source.id === pkg.source.id)
+        })
     }
   }
 

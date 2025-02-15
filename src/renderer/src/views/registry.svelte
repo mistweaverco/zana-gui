@@ -82,6 +82,10 @@
     if ($registryFilteredPackages.length === 0) {
       $registryFilteredPackages = $registryPackages
     }
+    // filter out installed packages
+    $registryFilteredPackages = $registryFilteredPackages.filter((pkg) => {
+      return !$localPackages.some((localPkg) => localPkg.source.id === pkg.source.id)
+    })
     loadingText = 'Loading registry ...'
     loadingModal.close()
     window.onkeydown = (evt: KeyboardEvent): void => {
