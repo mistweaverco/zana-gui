@@ -11,7 +11,7 @@
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/mistweaverco/zana-gui?style=for-the-badge)](https://github.com/mistweaverco/zana-gui/releases/latest)
 [![Discord](assets/badge-discord.svg)](https://getzana.net/discord)
 
-[Install](#install) • [Documentation](https://gui.getzana.net/)
+[Install](#install) • [Requirements](#requirements) • [What is working?](#what-is-working)
 
 <p></p>
 
@@ -39,6 +39,16 @@ Currently, Zana is in pre-alpha and under active development.
 
 Just head over to the [download page][download-page] or
 grab it directtly from the [releases][releases-page].
+
+## Requirements
+
+Because Zana is a package manager for Neovim, you need to have Neovim installed.
+Also, because Zana is a GUI, you need to have a graphical environment.
+
+Besides that, we shell out to `npm`, `pip`, `cargo`, `go`, and `git` to install packages,
+depending on the package type.
+
+E.g. if you want to install `pkg:npm` packages, you need to have `npm` installed.
 
 ## What is working?
 
