@@ -62,8 +62,8 @@ E.g. if you want to install `pkg:npm` packages, you need to have `npm` installed
 - [ ] Update `pkg:github` packages
 - [x] Install `pkg:pypi` packages
 - [x] Update `pkg:pypi` packages
-- [ ] Install `pkg:golang` packages
-- [ ] Update `pkg:golang` packages
+- [x] Install `pkg:golang` packages
+- [x] Update `pkg:golang` packages
 - [ ] Install `pkg:cargo` packages
 - [ ] Update `pkg:cargo` packages
 
