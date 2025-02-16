@@ -9,7 +9,9 @@ const getRepo = (sourceId: string): string => {
   return sourceId.replace(/^pkg:npm\/(.*)/, '$1')
 }
 
-const generatePackageJson = (): void => {
+// If no local packages are found, return false
+const generatePackageJson = (): boolean => {
+  let found = false
   const packageJson = {
     dependencies: {}
   }
@@ -17,19 +19,25 @@ const generatePackageJson = (): void => {
   for (const pkg of localPackages) {
     if (detectProvider(pkg.sourceId) !== 'npm') continue
     packageJson.dependencies[getRepo(pkg.sourceId)] = pkg.version
+    found = true
   }
   fs.writeFileSync(
     path.join(APP_PACKAGES_NPM_DIR, 'package.json'),
     JSON.stringify(packageJson, null, 2),
     'utf-8'
   )
+  return found
 }
 
 const sync = async (): Promise<boolean> => {
   if (!fs.existsSync(APP_PACKAGES_NPM_DIR)) {
     fs.mkdirSync(APP_PACKAGES_NPM_DIR)
   }
-  generatePackageJson()
+  const packagesFound = generatePackageJson()
+
+  if (!packagesFound) {
+    return true
+  }
 
   const pruneRes = await shellOut('npm', ['prune'], APP_PACKAGES_NPM_DIR)
   if (pruneRes.code !== 0) {

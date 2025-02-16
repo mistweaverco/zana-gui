@@ -9,12 +9,15 @@ const getRepo = (sourceId: string): string => {
   return sourceId.replace(/^pkg:pypi\/(.*)/, '$1')
 }
 
-const generateRequirementsTxt = (): void => {
+// If no local packages are found, return false
+const generateRequirementsTxt = (): boolean => {
+  let found = false
   const requirementsAsJson = {}
   const localPackages = getLocalPackages()
   for (const pkg of localPackages) {
     if (detectProvider(pkg.sourceId) !== 'pypi') continue
     requirementsAsJson[getRepo(pkg.sourceId)] = pkg.version
+    found = true
   }
   const sortedByKey = Object.keys(requirementsAsJson)
     .sort()
@@ -30,13 +33,17 @@ const generateRequirementsTxt = (): void => {
     requirementsTxt += `${pkg}==${version}\n`
   }
   fs.writeFileSync(path.join(APP_PACKAGES_PYPI_DIR, 'requirements.txt'), requirementsTxt, 'utf-8')
+  return found
 }
 
 const sync = async (): Promise<boolean> => {
   if (!fs.existsSync(APP_PACKAGES_PYPI_DIR)) {
     fs.mkdirSync(APP_PACKAGES_PYPI_DIR)
   }
-  generateRequirementsTxt()
+  const packagesFound = generateRequirementsTxt()
+  if (!packagesFound) {
+    return true
+  }
   const res = await shellOut(
     'pip',
     ['install', '-r', 'requirements.txt', '--target', 'pkgs'],
