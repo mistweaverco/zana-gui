@@ -10,12 +10,14 @@ export type ShellOut = {
 export const shellOut = async (
   cmd: string,
   args: string[] = [],
-  cwd: string = process.cwd()
+  cwd: string = process.cwd(),
+  env: Record<string, string | undefined> = process.env
 ): Promise<ShellOut> => {
   return new Promise((resolve) => {
     const s = spawn(cmd, args, {
       cwd,
-      shell: true
+      shell: true,
+      env
     })
 
     const res: ShellOut = {
