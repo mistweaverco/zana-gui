@@ -51,8 +51,8 @@ download the latest release for your OS.
 - [x] Update `pkg:npm` packages
 - [ ] Install `pkg:github` packages
 - [ ] Update `pkg:github` packages
-- [ ] Install `pkg:pypi` packages
-- [ ] Update `pkg:pypi` packages
+- [x] Install `pkg:pypi` packages
+- [x] Update `pkg:pypi` packages
 - [ ] Install `pkg:golang` packages
 - [ ] Update `pkg:golang` packages
 - [ ] Install `pkg:cargo` packages
