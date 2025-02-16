@@ -128,6 +128,20 @@ export const getLocallyInstalledPackages = (): LocalInstalledPackage[] => {
             ? isUpdateAvailable(localPackage.version, registryPackage.version)
             : false
       }
+    }) // sort by name, but also the ones with updates first
+    .sort((a, b) => {
+      if (a.updateAvailable && !b.updateAvailable) {
+        return -1
+      }
+      if (!a.updateAvailable && b.updateAvailable) {
+        return 1
+      }
+      if (a.name < b.name) {
+        return -1
+      }
+      if (a.name > b.name) {
+        return 1
+      }
+      return 0
     })
-    .sort((a, b) => a.name.localeCompare(b.name))
 }
