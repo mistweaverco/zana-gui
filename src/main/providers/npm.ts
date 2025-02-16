@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
-import { getLocalPackages } from '../files'
+import { detectProvider } from './utils'
+import { getLocalPackages, installOrUpdatePackage, removePackageFromLocalPackages } from '../files'
 import { APP_PACKAGES_NPM_DIR } from './../constants'
 import { shellOut } from './../shell'
 
@@ -14,6 +15,7 @@ const generatePackageJson = (): void => {
   }
   const localPackages = getLocalPackages()
   for (const pkg of localPackages) {
+    if (detectProvider(pkg.sourceId) !== 'npm') continue
     packageJson.dependencies[getRepo(pkg.sourceId)] = pkg.version
   }
   fs.writeFileSync(
@@ -28,24 +30,23 @@ const sync = async (): Promise<boolean> => {
     fs.mkdirSync(APP_PACKAGES_NPM_DIR)
   }
   generatePackageJson()
+
+  const pruneRes = await shellOut('npm', ['prune'], APP_PACKAGES_NPM_DIR)
+  if (pruneRes.code !== 0) {
+    return false
+  }
   const res = await shellOut('npm', ['install'], APP_PACKAGES_NPM_DIR)
   return res.code === 0
 }
 
 const install = async (sourceId: string, version: string): Promise<boolean> => {
-  const repo = getRepo(sourceId)
-  const res = await shellOut(
-    'npm',
-    ['install', '--save-exact', `${repo}@${version}`],
-    APP_PACKAGES_NPM_DIR
-  )
-  return res.code === 0
+  await installOrUpdatePackage(sourceId, version)
+  return await sync()
 }
 
 const remove = async (sourceId: string): Promise<boolean> => {
-  const repo = getRepo(sourceId)
-  const res = await shellOut('npm', ['remove', repo], APP_PACKAGES_NPM_DIR)
-  return res.code === 0
+  removePackageFromLocalPackages(sourceId)
+  return await sync()
 }
 
 export const npm = {

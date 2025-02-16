@@ -1,30 +1,19 @@
-import { installOrUpdatePackage, removePackageFromLocalPackages } from './../files'
+import { detectProvider } from './utils'
 import { github } from './github'
 import { npm } from './npm'
-
-export const detectProvider = (sourceId: string): 'npm' | 'github' | null => {
-  switch (true) {
-    case sourceId.startsWith('pkg:npm'):
-      return 'npm'
-    case sourceId.startsWith('pkg:github'):
-      return 'github'
-    default:
-      return null
-  }
-}
+import { pypi } from './pypi'
 
 export const syncPackages = async (): Promise<boolean> => {
-  return await npm.sync()
+  const results = await Promise.allSettled([pypi.sync(), npm.sync()])
+  return results.every((result) => result.status === 'fulfilled' && result.value)
 }
 
 export const installPackage = async (sourceId: string, version: string): Promise<boolean> => {
   switch (detectProvider(sourceId)) {
     case 'npm':
-      if (await npm.install(sourceId, version)) {
-        installOrUpdatePackage(sourceId, version)
-        return true
-      }
-      return false
+      return await npm.install(sourceId, version)
+    case 'pypi':
+      return await pypi.install(sourceId, version)
     case 'github':
       return await github.install(sourceId)
     default:
@@ -35,11 +24,9 @@ export const installPackage = async (sourceId: string, version: string): Promise
 export const removePackage = async (sourceId: string): Promise<boolean> => {
   switch (detectProvider(sourceId)) {
     case 'npm':
-      if (await npm.remove(sourceId)) {
-        removePackageFromLocalPackages(sourceId)
-        return true
-      }
-      return false
+      return await npm.remove(sourceId)
+    case 'pypi':
+      return await pypi.remove(sourceId)
     case 'github':
       return await github.install(sourceId)
     default:
