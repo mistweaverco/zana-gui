@@ -41,6 +41,22 @@ Just head over to the
 [releases page][releases-page] and
 download the latest release for your OS.
 
+## What is working?
+
+- [x] [registry](https://github.com/mistweaverco/zana-registry) updates on startup
+- [x] Updates available for installed packages?
+- [x] Filtering packages
+- [x] Vim keymaps
+- [x] Install `pkg:npm` packages
+- [x] Update `pkg:npm` packages
+- [ ] Install `pkg:github` packages
+- [ ] Update `pkg:github` packages
+- [ ] Install `pkg:pypi` packages
+- [ ] Update `pkg:pypi` packages
+- [ ] Install `pkg:golang` packages
+- [ ] Update `pkg:golang` packages
+- [ ] Install `pkg:cargo` packages
+- [ ] Update `pkg:cargo` packages
 
 
 [releases-page]: https://github.com/mistweaverco/zana-client/releases/latest
