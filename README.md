@@ -37,9 +37,8 @@ Currently, Zana is in pre-alpha and under active development.
 
 ## Install
 
-Just head over to the
-[releases page][releases-page] and
-download the latest release for your OS.
+Just head over to the [download page][download-page] or
+grab it directtly from the [releases][releases-page].
 
 ## What is working?
 
@@ -59,4 +58,5 @@ download the latest release for your OS.
 - [ ] Update `pkg:cargo` packages
 
 
+[download-page]: https://getzana.net/#download
 [releases-page]: https://github.com/mistweaverco/zana-client/releases/latest
